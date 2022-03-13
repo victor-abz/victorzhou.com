@@ -1,5 +1,5 @@
 import classNames from 'classnames/bind';
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useState } from 'react';
 import Headroom from 'react-headroom';
 
 import { getIcon } from '../../utils';
@@ -13,7 +13,13 @@ import styles from './NavHeader.module.scss';
 const cx = classNames.bind(styles);
 
 function NavHeader() {
+  const [hasMounted, setHasMounted] = useState(false);
   const [menuShown, setMenuShown] = useState(false);
+
+  // Don't pick mobile vs desktop during SSR - mount the correct components on page load.
+  useLayoutEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   return (
     <Headroom
@@ -22,31 +28,35 @@ function NavHeader() {
       }}
     >
       <div className={cx({ header: true, 'no-shadow': menuShown })}>
-        <DisplayIf desktop className={styles['header__left']}>
-          <Author />
-        </DisplayIf>
-        <DisplayIf mobile className={`${styles['header__left']} ${styles['mobile']}`}>
-          <Author small />
-        </DisplayIf>
-        <DisplayIf desktop className={styles['header__right']}>
-          <Menu horizontal bold />
-          <div className={styles['dark-mode-toggle']}>
-            <DarkModeToggle />
-          </div>
-        </DisplayIf>
-        <DisplayIf mobile className={`${styles['dark-mode-toggle']} ${styles['mobile']}`}>
-          <DarkModeToggle />
-        </DisplayIf>
-        <DisplayIf mobile>
-          <button
-            onClick={() => {
-              setMenuShown(!menuShown);
-            }}
-            className={cx({ header__burger: true, open: menuShown })}
-          >
-            <Icon name="menu" icon={getIcon('menu')} />
-          </button>
-        </DisplayIf>
+        {hasMounted && (
+          <>
+            <DisplayIf desktop className={styles['header__left']}>
+              <Author />
+            </DisplayIf>
+            <DisplayIf mobile className={`${styles['header__left']} ${styles['mobile']}`}>
+              <Author small />
+            </DisplayIf>
+            <DisplayIf desktop className={styles['header__right']}>
+              <Menu horizontal bold />
+              <div className={styles['dark-mode-toggle']}>
+                <DarkModeToggle />
+              </div>
+            </DisplayIf>
+            <DisplayIf mobile className={`${styles['dark-mode-toggle']} ${styles['mobile']}`}>
+              <DarkModeToggle />
+            </DisplayIf>
+            <DisplayIf mobile>
+              <button
+                onClick={() => {
+                  setMenuShown(!menuShown);
+                }}
+                className={cx({ header__burger: true, open: menuShown })}
+              >
+                <Icon name="menu" icon={getIcon('menu')} />
+              </button>
+            </DisplayIf>
+          </>
+        )}
       </div>
       {menuShown && (
         <DisplayIf mobile className={styles['popup']}>
